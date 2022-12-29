@@ -18,14 +18,14 @@
                 ImageUrl = "https://static.openfoodfacts.org/images/products/366/111/250/2850/front_fr.3.400.jpg"
             }
         };
-        public Task<ProductDto?> GetByIdAsync(long id)
+        public Task<ProductDto> GetByIdAsync(long id)
         {
-            ProductDto? product = products.Where(p => p.Id == id).FirstOrDefault();
+            ProductDto product = products.Where(p => p.Id == id).FirstOrDefault();
             return Task.FromResult(product);
         }
-        public Task<ProductDto?> GetByCodeAsync(long code)
+        public Task<ProductDto> GetByCodeAsync(long code)
         {
-            ProductDto? product = products.Where(p => p.Code == code).FirstOrDefault();
+            ProductDto product = products.Where(p => p.Code == code).FirstOrDefault();
             return Task.FromResult(product);
         }
         public Task<IEnumerable<ProductDto>> ListAsync()
@@ -36,6 +36,16 @@
         {
             products.Add(product);
             return Task.CompletedTask;
-        }                
+        }
+
+        public Task BulkCreateAsync(IEnumerable<ProductDto> products)
+        {
+            //TODO:
+            return Task.CompletedTask;
+        }
+        public Task UpdateRemainingFields(ProductDto product)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

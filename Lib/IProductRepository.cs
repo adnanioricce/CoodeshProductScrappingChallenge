@@ -14,13 +14,15 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns>A <see cref="Task"/> with the retrieved product as <see cref="ProductDto"/></returns>
-        Task<ProductDto?> GetByIdAsync(long id);
+        Task<ProductDto> GetByIdAsync(long id);
 
-        Task<ProductDto?> GetByCodeAsync(long code);
+        Task<ProductDto> GetByCodeAsync(long code);
         /// <summary>
         /// List products from the database
         /// </summary>
         /// <returns>a list of products as a <see cref="IEnumerable{T}"/> of <see cref="ProductDto"/></returns>
         Task<IEnumerable<ProductDto>> ListAsync();
+        Task BulkCreateAsync(IEnumerable<ProductDto> products);
+        Task UpdateRemainingFields(ProductDto product);
     }
 }

@@ -17,7 +17,35 @@
             var parsedContent = await _parser.ParseDocumentAsync(str);
             var products = parsedContent.QuerySelectorAll("#products_all li");
             return products.Select(p => ParseProduct(p));
-        }        
+        }
+        /// <summary>
+        /// Parse product descrption page
+        /// </summary>
+        /// <param name="str">the HTML string with the product data to be scrapped</param>
+        /// <returns>a <see cref="IEnumerable{T}"/> of <see cref="ProductDto"/></returns>
+        public async Task<ProductDto> ParseProductDescriptionPage(string str,ProductDto previousProduct)
+        {
+            var parsedContent = await _parser.ParseDocumentAsync(str);
+            var productSection = parsedContent.QuerySelector("#product");
+            var barcode = productSection?.QuerySelector("#barcode_paragraph")?.TextContent;
+            var commonName = productSection?.QuerySelector("#field_generic_name")?.TextContent;
+            var packaging = 
+                productSection?.QuerySelectorAll("#field_packaging_value a.tag.user_defined")?.Select(p => p.TextContent)?.ToArray()
+                ?? Enumerable.Empty<string>().ToArray();
+            var brands =
+                productSection?.QuerySelector("#field_brands")?.TextContent;
+            var categories = productSection?.QuerySelector("#field_categories")?.TextContent;
+            var quantity = productSection?.QuerySelector("#field_quantity_value")?.TextContent;
+            var product = previousProduct with
+            {
+                Barcode = barcode ?? ""
+                ,Brands = brands ?? ""
+                ,Categories = categories ?? ""
+                ,Quantity = quantity ?? ""
+                ,Packaging = string.Join(",",packaging)                
+            };
+            return product;            
+        }
         public static ProductDto ParseProduct(IElement p)
         {            
             string url = p.QuerySelector(".list_product_a")?.GetAttribute("href") ?? "";
