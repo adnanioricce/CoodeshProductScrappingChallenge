@@ -1,16 +1,16 @@
 CREATE TABLE [dbo].[Products](
   Id INT IDENTITY(1,1) NOT NULL
   ,Code         BIGINT NOT NULL
-  ,Barcode      VARCHAR(27) NOT NULL
+  ,Barcode      VARCHAR(32) NOT NULL
   ,Status       VARCHAR(8) NOT NULL
-  ,ImportedAt   VARCHAR(20) NOT NULL
-  ,Url          VARCHAR(53) NOT NULL
-  ,ProductName VARCHAR(33) NOT NULL
-  ,Quantity     VARCHAR(5) NOT NULL
-  ,Categories   VARCHAR(39) NOT NULL
-  ,Packaging    VARCHAR(36) NOT NULL
-  ,Brands       VARCHAR(24) NOT NULL
-  ,ImageUrl    VARCHAR(84) NOT NULL
+  ,ImportedAt   VARCHAR(32) NOT NULL
+  ,Url          VARCHAR(255) NOT NULL
+  ,ProductName VARCHAR(128) NOT NULL
+  ,Quantity     VARCHAR(16) NOT NULL
+  ,Categories   VARCHAR(255) NOT NULL
+  ,Packaging    VARCHAR(512) NOT NULL
+  ,Brands       VARCHAR(512) NOT NULL
+  ,ImageUrl    VARCHAR(512) NOT NULL
 );
 INSERT INTO [Products](Code,Barcode,Status,ImportedAt,Url,ProductName,Quantity,Categories,Packaging,Brands,ImageUrl) 
 VALUES (3661112502850
