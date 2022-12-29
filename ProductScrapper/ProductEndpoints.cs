@@ -2,6 +2,8 @@
 
 namespace ProductScrapper
 {
+    public delegate Task<IEnumerable<ProductDto>> ListProductsAsync();
+    public delegate Task<ProductDto> GetByCodeAsync(long code);
     public class ProductEndpoints : IApiDefinition
     {        
         public ProductEndpoints()
@@ -15,22 +17,23 @@ namespace ProductScrapper
         public void SetupEndpoints(WebApplication app)
         {
             //Configura os endpoints
-            app.MapGet("products/{code:long}", GetByIdAsync());
+            app.MapGet("products/{code:long}",
+                ([FromServices] IProductRepository productRepository,long code) => GetByCodeAsync(productRepository.GetByCodeAsync,code));
             //TODO: Allow content pagination
-            app.MapGet("products", ListAsync);
+            app.MapGet("products",
+                ([FromServices] IProductRepository productRepository) => ListAsync(productRepository.ListAsync));
         }
 
-        public static async Task<IResult> ListAsync([FromServices] IProductRepository productRepository)
+        public static async Task<IResult> ListAsync(ListProductsAsync listProductsAsync)
         {                        
             try
             {
-                var products = await productRepository.ListAsync();
-                if (!products.Any())
-                {
-                    return Results.NoContent();
-                }
-
-                return Results.Ok(products);
+                var products = await listProductsAsync();
+                if (!products.Any())                
+                    return Results.NoContent();                
+                
+                var result = Results.Ok(products);
+                return result;
             }
             catch (Exception ex)
             {
@@ -39,13 +42,22 @@ namespace ProductScrapper
             }            
         }
 
-        public static Func<IProductRepository, long, Task<ProductDto?>> GetByIdAsync()
+        public static async Task<IResult> GetByCodeAsync(GetByCodeAsync getByCodeAsync, long code)
         {
-            return async ([FromServices] IProductRepository productRepository, long code) =>
+            try
             {
-                var product = await productRepository.GetByCodeAsync(code);
-                return product;
-            };
+                var product = await getByCodeAsync(code);
+                if (product == default)
+                    return Results.NoContent();
+
+                var result = Results.Ok(product);
+                return result;
+            }
+            catch(Exception ex)
+            {
+                //TODO: Log
+                return Results.StatusCode(500);
+            }
         }
     }
 }
