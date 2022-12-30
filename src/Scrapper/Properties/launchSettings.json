@@ -1,0 +1,23 @@
+{
+  "profiles": {
+    "Scrapper": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development",
+        "DATABASE_URL": "Server=localhost,1741;Database=ProductScrapper;User Id=SA;Password=!P4ssword;TrustServerCertificate=True"
+      },
+      "dotnetRunMessages": true
+    },
+    "Docker": {
+      "commandName": "Docker"
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development",
+        "DATABASE_URL": "Server=localhost,1741;Database=ProductScrapper;User Id=SA;Password=!P4ssword;TrustServerCertificate=True"
+      },
+      "distributionName": ""
+    }
+  }
+}

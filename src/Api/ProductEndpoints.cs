@@ -12,7 +12,8 @@ namespace ProductScrapper
         public void SetupServices(IServiceCollection services)
         {
             //Configura as dependências
-            services.AddTransient<IProductRepository, FakeProductRepository>();
+            services.AddSingleton<CreateConnection>(AppConnection.CreateConnection);            
+            services.AddTransient<IProductRepository, SqlProductRepository>();
         }
         public void SetupEndpoints(WebApplication app)
         {

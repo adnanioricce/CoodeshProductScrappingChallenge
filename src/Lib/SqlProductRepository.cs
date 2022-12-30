@@ -1,8 +1,8 @@
 ﻿using Dapper;
-using ProductScrapper;
 using System.Data;
+using System.Runtime.CompilerServices;
 
-namespace Lib
+namespace ProductScrapper
 {
     public delegate IDbConnection CreateConnectionWith(string connectionString);
     public delegate IDbConnection CreateConnection();
@@ -14,12 +14,12 @@ namespace Lib
             _createConnection = createConnection;
         }
         public async Task BulkCreateAsync(IEnumerable<ProductDto> products)
-        {
+        {            
             await AppConnection.OnConnection(_createConnection, async (conn) =>
                 await conn.ExecuteAsync(@"
                 INSERT INTO [Products](Code,Barcode,Status,ImportedAt,Url,ProductName,Quantity,Categories,Packaging,Brands,ImageUrl) 
                 VALUES(@Code,@Barcode,@Status,@ImportedAt,@Url,@ProductName,@Quantity,@Categories,@Packaging,@Brands,@ImageUrl)"
-                , products));
+                , products.Select(p => p with { ImportedAt = DateTimeOffset.UtcNow.ToString() })));
         }
 
         public async Task Create(ProductDto product)
@@ -30,7 +30,14 @@ namespace Lib
         public async Task<ProductDto> GetByCodeAsync(long code)
         {
             return await AppConnection.OnConnection(_createConnection,
-                async (conn) => await conn.QueryFirstAsync<ProductDto>("SELECT * FROM dbo.[Products] WHERE Code = @Code", new { Code = code }));
+                async (conn) => {
+                    using var reader = await conn.ExecuteReaderAsync("SELECT * FROM dbo.[Products] WHERE Code = @Code", new { Code = code });
+                    if (reader.Read())
+                    {
+                        return ProductDto.Read(reader);
+                    }
+                    return default;
+                });
         }
 
         public async Task<ProductDto> GetByIdAsync(long id)
@@ -41,8 +48,24 @@ namespace Lib
 
         public async Task<IEnumerable<ProductDto>> ListAsync()
         {
-            return await AppConnection.OnConnection(_createConnection,
-                async (conn) => await conn.QueryAsync<ProductDto>("SELECT * FROM dbo.[Products]"));
+            try
+            {
+                Func<IDbConnection,Task<IEnumerable<ProductDto>>> readRows = async (conn) => {
+                    using var reader = await conn.ExecuteReaderAsync("SELECT * FROM dbo.[Products]");
+                    var products = new List<ProductDto>();
+                    while (reader.Read())
+                    {
+                        products.Add(ProductDto.Read(reader));
+                    }
+                    return products;
+                };
+                var result = await AppConnection.OnConnection(_createConnection,readRows);
+                return result;
+            }
+            catch(Exception ex)
+            {
+                return Enumerable.Empty<ProductDto>();
+            }            
         }
 
         public async Task UpdateRemainingFields(ProductDto product)

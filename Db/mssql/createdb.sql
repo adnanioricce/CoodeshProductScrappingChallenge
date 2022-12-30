@@ -1,18 +1,23 @@
+CREATE DATABASE ProductScrapper;
+GO
+USE ProductScrapper;
+
 CREATE TABLE [dbo].[Products](
   Id INT IDENTITY(1,1) NOT NULL
   ,Code         BIGINT NOT NULL
-  ,Barcode      VARCHAR(32) NOT NULL
-  ,Status       VARCHAR(8) NOT NULL
-  ,ImportedAt   VARCHAR(32) NOT NULL
-  ,Url          VARCHAR(255) NOT NULL
-  ,ProductName VARCHAR(128) NOT NULL
-  ,Quantity     VARCHAR(16) NOT NULL
-  ,Categories   VARCHAR(255) NOT NULL
-  ,Packaging    VARCHAR(512) NOT NULL
-  ,Brands       VARCHAR(512) NOT NULL
-  ,ImageUrl    VARCHAR(512) NOT NULL
+  ,Barcode      VARCHAR(MAX) NOT NULL
+  ,Status       INT NOT NULL
+  ,ImportedAt   DateTimeOffset(7)
+  ,Url          VARCHAR(MAX) NOT NULL
+  ,ProductName VARCHAR(MAX) NOT NULL
+  ,Quantity     VARCHAR(MAX) NOT NULL
+  ,Categories   VARCHAR(MAX) NOT NULL
+  ,Packaging    VARCHAR(MAX) NOT NULL
+  ,Brands       VARCHAR(MAX) NOT NULL
+  ,ImageUrl    VARCHAR(MAX) NOT NULL
 );
-INSERT INTO [Products](Code,Barcode,Status,ImportedAt,Url,ProductName,Quantity,Categories,Packaging,Brands,ImageUrl) 
+GO
+INSERT INTO [dbo].[Products](Code,Barcode,Status,ImportedAt,Url,ProductName,Quantity,Categories,Packaging,Brands,ImageUrl) 
 VALUES (3661112502850
     ,'3661112502850(EAN / EAN-13)'
     ,'imported'
@@ -23,4 +28,6 @@ VALUES (3661112502850
     ,'Meats, Prepared meats, Hams, White hams'
     ,'Film en plastique, Film en plastique'
     ,'Tradilège, Marque Repère'
-    ,'https://static.openfoodfacts.org/images/products/366/111/250/2850/front_fr.3.400.jpg');
+  
+  ,'https://static.openfoodfacts.org/images/products/366/111/250/2850/front_fr.3.400.jpg');
+GO

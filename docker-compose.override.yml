@@ -1,0 +1,25 @@
+version: '3.4'
+
+services:
+  #db:
+  #  environment:
+  #    - SA_PASSWORD=!P4ssword
+  #    - ACCEPT_EULA=Y
+  #    - MSSQL_PID=Express
+  api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - DATABASE_URL=Server=db,1433;Database=ProductScrapper;User Id=SA;Password=!P4ssword;TrustServerCertificate=True
+    ports:
+      - "80"
+      #- "443"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+  scrapper:
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - DATABASE_URL=Server=db,1433;Database=ProductScrapper;User Id=SA;Password=!P4ssword;TrustServerCertificate=True
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro

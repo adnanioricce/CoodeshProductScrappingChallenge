@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using System.Data;
 
-namespace Lib
+namespace ProductScrapper
 {
     public static class AppConnection
     {
@@ -22,11 +22,12 @@ namespace Lib
                 return onConn(conn);
             }
         }
-        public static Task<T> OnConnection<T>(CreateConnection createConnection, Func<IDbConnection, Task<T>> onConn)
+        public static async Task<T> OnConnection<T>(CreateConnection createConnection, Func<IDbConnection, Task<T>> onConn)
         {
             using (var conn = createConnection())
             {
-                return onConn(conn);
+                var result = await onConn(conn);
+                return result;
             }
         }
     }

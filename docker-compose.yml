@@ -1,0 +1,35 @@
+version: '3.4'
+
+services:
+  db:
+    image: adnanioricce/productscrapper/db
+    build:
+        context: Db/mssql
+        dockerfile: Dockerfile
+    networks:
+      - scrapper-network
+    ports:
+      - "1741:1433"
+
+  api:
+    image: adnanioricce/productscrapper/api
+    build:
+      context: .
+      dockerfile: src/Api/Dockerfile
+    networks:
+      - scrapper-network
+    depends_on:
+      - db    
+
+  scrapper:
+    image: adnanioricce/productscrapper/scrapper
+    build:
+      context: .
+      dockerfile: src/Scrapper/Dockerfile
+    networks:
+      - scrapper-network
+    depends_on:
+      - db
+
+networks:
+  scrapper-network:
