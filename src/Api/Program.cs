@@ -20,6 +20,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.MapGet("/", () => Results.Ok("Fullstack Challenge 20201026"));
 foreach(var apiDef in apiDefs)
 {
     apiDef.SetupEndpoints(app);

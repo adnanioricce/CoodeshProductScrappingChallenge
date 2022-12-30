@@ -1,7 +1,4 @@
 ﻿using ProductScrapper;
-using System.Collections.Concurrent;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Scrapper
 {
@@ -24,11 +21,11 @@ namespace Scrapper
             var products = await _scrapper.ScrapProductListAsync(client.GetStringAsync, _initialUrl) ?? Enumerable.Empty<ProductDto>();            
             var productsFilled = new ProductDto[products.Count()];            
             _logger.LogInformation("Scrapping each product individually");
-            var elements = products.Select((p, index) => (index, p));            
-            foreach (var el in elements)
+            var elements = products.Select((Product, Index) => (Index, Product));            
+            foreach (var (Index,Product) in elements)
             {                                
-                _logger.LogInformation("Scrapping product {0} of code {1}", el.index, el.p.Code);
-                productsFilled[el.index] = await _scrapper.ScrapProductDescription(client.GetStringAsync,$"{_initialUrl}{el.p.Url}", el.p);
+                _logger.LogInformation("Scrapping product {0} of code {1}", Index, Product.Code);
+                productsFilled[Index] = await _scrapper.ScrapProductDescription(client.GetStringAsync,$"{_initialUrl}{Product.Url}", Product);
             }            
             _logger.LogInformation("Saving all products");
             await _productRepository.BulkCreateAsync(productsFilled);
