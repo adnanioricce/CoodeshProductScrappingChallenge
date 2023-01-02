@@ -23,10 +23,7 @@ module Tests =
         let url = "https://world.openfoodfacts.org/product/3017620422003/nutella-ferrero"
         let mockGetString = fun (url:string) -> task { return Tests.Data.singleProductStr }
         let scrapper = ProductScrapper()        
-        let! product = scrapper.ScrapProductDescription(mockGetString,url,ProductDto()) |> Async.AwaitTask
-        Assert.NotEmpty(product.Barcode)
-        Assert.NotEmpty(product.Brands)
-        Assert.NotEmpty(product.Categories)
-        Assert.NotEmpty(product.Quantity)
-        Assert.NotEmpty(product.Packaging)
+        let! product = scrapper.ScrapProductDescription(mockGetString,url,ProductDto()) |> Async.AwaitTask        
+        Assert.NotEqual(0L,product.Code)
+        Assert.NotEqual(ProductStatus.Draft,product.Status)
     }

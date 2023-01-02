@@ -7,14 +7,16 @@ module Tests =
     open ProductScrapper
     open Microsoft.Data.SqlClient
     open System.Data
-    [<Fact>]
-    let ``test product read`` () = task {
+    [<Theory>]
+    [<InlineData(0,50)>]
+    let ``test product read`` (page,pageCount) = task {
         let createConn () =
             let conn:IDbConnection = new SqlConnection("Server=localhost,1741;Database=ProductScrapper;User Id=SA;Password=!P4ssword;TrustServerCertificate=True")
             conn
         let repository = SqlProductRepository(CreateConnection(createConn))
-        let! products = repository.ListAsync()
+        let! products = repository.ListAsync(page,pageCount)
         Assert.NotEmpty(products)
+        Assert.Equal(50,products |> Seq.length)
     }
     [<Fact>]
     let ``test product creation`` () = task {

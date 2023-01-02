@@ -15,8 +15,8 @@ module Tests =
     let ``GET list product returns ok if not empty`` () = async {    
         let repository:IProductRepository = FakeProductRepository()
         let! products = repository.ListAsync() |> Async.AwaitTask
-        let listProductsAsync = repository.ListAsync
-        let func () = ProductEndpoints.ListAsync listProductsAsync
+        let listProductsAsync page pageCount = repository.ListAsync(page,pageCount)
+        let func () = ProductEndpoints.ListAsync(listProductsAsync,0,10)
         let! r = (func () |> Async.AwaitTask)
         let result = r :?> HttpResults.Ok<IEnumerable<ProductDto>>
         let expectedResult = Results.Ok(products) :?> HttpResults.Ok<Object>                
@@ -27,13 +27,13 @@ module Tests =
     [<Fact>]
     let ``GET list product returns no content empty`` () = async {            
         let listProductsFunc = 
-            fun _ -> 
+            fun page pageCount -> 
                 task{ 
                     let products:IEnumerable<ProductDto> = []
                     return products
                 } 
         let listProductsAsync:ListProductsAsync = listProductsFunc 
-        let func () = ProductEndpoints.ListAsync listProductsAsync
+        let func () = ProductEndpoints.ListAsync(listProductsAsync,0,10)
         let! r = (func () |> Async.AwaitTask)    
         let result = r :?> HttpResults.NoContent
         let expectedResult = Results.NoContent() :?> HttpResults.NoContent
@@ -43,14 +43,14 @@ module Tests =
     [<Fact>]
     let ``GET list product returns server error if a unexpected error ocurred`` () = async {            
         let listProductsFunc = 
-            fun _ -> 
+            fun page pageCount -> 
                 task{ 
                     let products:IEnumerable<ProductDto> = []
                     Exception("Unexpected error") |> raise
                     return products
                 }
         let listProductsAsync:ListProductsAsync = listProductsFunc
-        let func () = ProductEndpoints.ListAsync listProductsAsync
+        let func () = ProductEndpoints.ListAsync(listProductsAsync,0,10)
         let! r = (func () |> Async.AwaitTask)
         let result = r :?> HttpResults.StatusCodeHttpResult
         let expectedResult = Results.StatusCode(500) :?> HttpResults.StatusCodeHttpResult        

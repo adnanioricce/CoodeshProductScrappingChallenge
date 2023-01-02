@@ -28,23 +28,57 @@ let dockerCli (args:string seq) = task {
             Cli.Wrap("docker")
             |> (fun builder -> builder.WithArguments(args))
             |> (fun builder -> builder.WithWorkingDirectory("."))
+            |> (fun builder -> builder.WithStandardOutputPipe(PipeTarget.ToDelegate(fun src -> printfn "%s" src)))
+            |> (fun builder -> builder.WithStandardErrorPipe(PipeTarget.ToDelegate(fun src -> printfn "%s" src)))
             |> (fun builder -> builder.ExecuteAsync())
         return result
     }
-let startApi () = task {
-    let! result = dockerCli ["run";"--name productscrapper-api";"-p";"5000:80";"-e";$""" DATABASE_URL="{databaseUrl}" """;"productscrapper/api"]
+let dockerComposeCli (args:string seq) = async {
+    let! result = 
+            Cli.Wrap("docker-compose")
+            |> (fun builder -> builder.WithArguments(args))
+            |> (fun builder -> builder.WithWorkingDirectory("."))
+            |> (fun builder -> builder.WithStandardOutputPipe(PipeTarget.ToDelegate(fun src -> printfn "%s" src)))
+            |> (fun builder -> builder.WithStandardErrorPipe(PipeTarget.ToDelegate(fun src -> printfn "%s" src)))
+            |> (fun builder -> builder.ExecuteAsync())
+            |> (fun cmd -> cmd.Task |> Async.AwaitTask)
+    return result    
+}
+let dotnetCli (args:string seq) = async {
+    let! result =
+        Cli.Wrap("dotnet")
+        |> (fun builder -> builder.WithArguments(args))
+        |> (fun builder -> builder.WithWorkingDirectory("."))
+        |> (fun builder -> builder.WithStandardOutputPipe(PipeTarget.ToDelegate(fun src -> printfn "%s" src)))
+        |> (fun builder -> builder.WithStandardErrorPipe(PipeTarget.ToDelegate(fun src -> printfn "%s" src)))
+        |> (fun builder -> builder.ExecuteAsync())        
+        |> (fun cmd -> cmd.Task |> Async.AwaitTask)
+    return result
+}
+let startDb () = async {
+    let! result = (dockerCli ["run";"--name productscrapper-db";"-p";"1741:1433";"-e";"adnanioricce/productscrapper/db"]) |> Async.AwaitTask
     return 0
 }
-let startScrapper () = task {
-    let! deleteResult = task {
+let startApi () = async {
+    let! result = 
+        (dockerCli ["run";"--name productscrapper-api";"-p";"5073:80";"-e";$""" DATABASE_URL="{databaseUrl}" """;"adnanioricce/productscrapper/api"])
+        |> Async.AwaitTask        
+    return 0
+}
+let startScrapper () = async {
+    let! deleteResult = async {
         let start = DateTimeOffset.UtcNow
         try 
-            let! r = dockerCli ["rm";"productscrapper-scrapper"]
+            let! r = 
+                dockerCli ["rm";"productscrapper-scrapper"]
+                |> Async.AwaitTask
             return r
         with
         | ex -> return CommandResult(0,start,DateTimeOffset.UtcNow)
     }
-    let! creationResult = dockerCli ["run";"--name productscrapper-scrapper";"-p";"5000:80";"-e";$""" DATABASE_URL="{databaseUrl}" """;"productscrapper/scrapper"]
+    let! creationResult = 
+        dockerCli ["run";"--name productscrapper-scrapper";"-e";$""" DATABASE_URL="{databaseUrl}" """;"adnanioricce/productscrapper/scrapper"]
+        |> Async.AwaitTask
     return 0
 }
 
@@ -61,3 +95,56 @@ let read () =
     conn.Close()
     conn.Dispose()
     count
+let startContainers () = 
+    //Start containers
+    startDb () |> Async.RunSynchronously |> ignore
+    [
+    startApi ()
+    startScrapper ()
+    ] 
+    |> Async.Parallel
+    |> ignore
+
+let start () = 
+    [
+    dockerComposeCli ["build"]
+    dockerComposeCli ["up";"-d"]    
+    ] 
+    |> Async.Sequential
+    |> Async.Ignore
+    |> Async.RunSynchronously
+let test () =
+    try        
+        dotnetCli ["test";"tests/IntegrationTests/"]
+        |> Async.Ignore
+        |> Async.RunSynchronously    
+    with
+    | ex -> printfn "%A" ex
+let unitTests () =
+    try        
+        dotnetCli ["test";"tests/UnitTests/"]
+        |> Async.Ignore
+        |> Async.RunSynchronously    
+    with
+    | ex -> printfn "%A" ex
+let push () =
+    try        
+        dockerComposeCli ["push"]
+        |> Async.Ignore
+        |> Async.RunSynchronously    
+    with
+    | ex -> printfn "%A" ex
+let stop () = 
+    [
+    dockerComposeCli ["stop"]
+    dockerComposeCli ["rm";"-fsv"]
+    ]
+    |> Async.Sequential
+    |> Async.Ignore
+    |> Async.RunSynchronously
+
+unitTests ()
+start ()
+test ()
+push ()
+stop ()

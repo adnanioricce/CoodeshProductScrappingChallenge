@@ -48,5 +48,10 @@
         {
             return Task.CompletedTask;
         }
+
+        public Task<IEnumerable<ProductDto>> ListAsync(int page, int pageCount)
+        {
+            return Task.FromResult(Enumerable.Empty<ProductDto>());
+        }
     }
 }

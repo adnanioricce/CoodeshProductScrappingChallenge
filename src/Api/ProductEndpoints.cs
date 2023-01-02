@@ -2,7 +2,7 @@
 
 namespace ProductScrapper
 {
-    public delegate Task<IEnumerable<ProductDto>> ListProductsAsync();
+    public delegate Task<IEnumerable<ProductDto>> ListProductsAsync(int page,int pageCount);
     public delegate Task<ProductDto> GetByCodeAsync(long code);
     public class ProductEndpoints : IApiDefinition
     {        
@@ -22,14 +22,14 @@ namespace ProductScrapper
                 ([FromServices] IProductRepository productRepository,long code) => GetByCodeAsync(productRepository.GetByCodeAsync,code));
             //TODO: Allow content pagination
             app.MapGet("products",
-                ([FromServices] IProductRepository productRepository) => ListAsync(productRepository.ListAsync));
+                ([FromServices] IProductRepository productRepository,int page,int pageCount) => ListAsync(productRepository.ListAsync,page,pageCount));
         }
 
-        public static async Task<IResult> ListAsync(ListProductsAsync listProductsAsync)
+        public static async Task<IResult> ListAsync(ListProductsAsync listProductsAsync,int page,int pageCount)
         {                        
             try
             {
-                var products = await listProductsAsync();
+                var products = await listProductsAsync(page,pageCount);
                 if (!products.Any())                
                     return Results.NoContent();                
                 

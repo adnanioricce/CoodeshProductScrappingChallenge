@@ -22,6 +22,7 @@
         /// </summary>
         /// <returns>a list of products as a <see cref="IEnumerable{T}"/> of <see cref="ProductDto"/></returns>
         Task<IEnumerable<ProductDto>> ListAsync();
+        Task<IEnumerable<ProductDto>> ListAsync(int page,int pageCount);
         Task BulkCreateAsync(IEnumerable<ProductDto> products);
         Task UpdateRemainingFields(ProductDto product);
     }
