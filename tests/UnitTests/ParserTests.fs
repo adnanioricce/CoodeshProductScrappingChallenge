@@ -1,9 +1,9 @@
 ﻿namespace Parser
+open ProductScrapper.Lib
+open ProductScrapper.Lib.Models
 module Tests = 
     open System
-    open Xunit
-    open ProductScrapper
-    
+    open Xunit    
     let allProductsDivStr = Tests.Data.allProductsDivStr
     let singleProductStr = Tests.Data.singleProductStr
     let nutellaDescriptionPage = Tests.Data.nutellaDescriptionPage
@@ -14,7 +14,7 @@ module Tests =
     
         let! products = parser.ParseProductsFromPage(allProductsDivStr) |> Async.AwaitTask
         let inspector = 
-            fun (product:ProductDto) ->
+            fun (product:Product) ->
                 Assert.Null(product.Barcode)
                 Assert.Null(product.Brands)
                 Assert.Null(product.Categories)
@@ -26,7 +26,7 @@ module Tests =
                 Assert.NotEmpty(product.Url)                
                 Assert.NotEmpty(product.ImageUrl)
                 
-        let inspectors:Action<ProductDto> array = products |> Seq.map (fun p -> (Action<ProductDto> inspector)) |> Seq.toArray            
+        let inspectors:Action<Product> array = products |> Seq.map (fun p -> (Action<Product> inspector)) |> Seq.toArray            
         Assert.NotEmpty(products)
         Assert.Collection(products,inspectors)
     }

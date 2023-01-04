@@ -1,8 +1,9 @@
 ﻿using ProductScrapper;
+using ProductScrapper.Lib.Models;
 
-namespace Lib.Repository
+namespace ProductScrapper.Lib.Repository
 {
-    public class FakeProductRepository : IProductRepository
+    public sealed class FakeProductRepository : IProductRepository
     {
         private readonly List<Product> products = new List<Product>() {
             new Product(){

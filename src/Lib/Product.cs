@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace ProductScrapper
+namespace ProductScrapper.Lib.Models
 {
     public enum ProductStatus
     {

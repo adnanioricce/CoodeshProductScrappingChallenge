@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using System.Data;
 
-namespace Lib.Repository
+namespace ProductScrapper.Lib.Repository
 {
     public static class AppConnection
     {

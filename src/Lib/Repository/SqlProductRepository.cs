@@ -1,8 +1,9 @@
 ﻿using Dapper;
 using ProductScrapper;
+using ProductScrapper.Lib.Models;
 using System.Data;
 
-namespace Lib.Repository
+namespace ProductScrapper.Lib.Repository
 {
     public delegate IDbConnection CreateConnectionWith(string connectionString);
     public delegate IDbConnection CreateConnection();

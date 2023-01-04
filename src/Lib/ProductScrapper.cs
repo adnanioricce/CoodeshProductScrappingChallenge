@@ -1,8 +1,7 @@
-﻿using Lib.Events;
-
-namespace ProductScrapper
+﻿namespace ProductScrapper.Lib
 {
-    public sealed class ProductScrapper
+    using Models;
+    public sealed class ProductScrapperService
     {        
         private readonly ProductParser _parser = new ProductParser();
         //Get list of products...
@@ -14,11 +13,7 @@ namespace ProductScrapper
             
             var products = await _parser.ParseProductsFromPage(pageStr);
             return products;
-        }
-        public async Task<IEnumerable<Product>> ScrapProductListAsync(Func<string?, Task<string>> getStringAsync, ScrapPageEvent scrapEvent)
-        {
-            return await ScrapProductListAsync(getStringAsync, scrapEvent.Url);
-        }
+        }        
         // then, scrap remaining data individually one by one
         public async Task<Product> ScrapProductDescription(Func<string?, Task<string>> getStringAsync, string url,Product productDto)
         {

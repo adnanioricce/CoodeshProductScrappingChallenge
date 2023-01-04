@@ -1,7 +1,10 @@
 ﻿using ProductScrapper;
+using ProductScrapper.Lib.Models;
 
-namespace Lib.Repository
+namespace ProductScrapper.Lib.Repository
 {
+    public delegate Task<IEnumerable<Product>> ListProductsAsync(int page, int pageCount);
+    public delegate Task<Product> GetByCodeAsync(long code);
     //TODO: If needed, create a generic class. This didn't seemed necessary to me.
     public interface IProductRepository
     {

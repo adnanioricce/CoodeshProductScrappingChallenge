@@ -1,15 +1,15 @@
 ﻿namespace Api
 
-open System.Collections.Generic
-open Lib.Repository
-
 module Tests = 
-
+    
     open System
     open Xunit
     open ProductScrapper
     open Microsoft.AspNetCore.Http
     open Microsoft.AspNetCore.Http.HttpResults
+    open System.Collections.Generic
+    open ProductScrapper.Lib.Models
+    open ProductScrapper.Lib.Repository
     //Parser tests
     //TODO: Unit tests for NoContent,Server Error
     [<Fact>]
@@ -19,18 +19,18 @@ module Tests =
         let listProductsAsync page pageCount = repository.ListAsync(page,pageCount)
         let func () = ProductEndpoints.ListAsync(listProductsAsync,0,10)
         let! r = (func () |> Async.AwaitTask)
-        let result = r :?> HttpResults.Ok<IEnumerable<ProductDto>>
+        let result = r :?> HttpResults.Ok<IEnumerable<Product>>
         let expectedResult = Results.Ok(products) :?> HttpResults.Ok<Object>                
         let receivedProducts = result.Value
         Assert.Equal(expectedResult.StatusCode,result.StatusCode)
-        Assert.Equal<IEnumerable<ProductDto>>(products,receivedProducts)
+        Assert.Equal<IEnumerable<Product>>(products,receivedProducts)
     }
     [<Fact>]
     let ``GET list product returns no content empty`` () = async {            
         let listProductsFunc = 
             fun page pageCount -> 
                 task{ 
-                    let products:IEnumerable<ProductDto> = []
+                    let products:IEnumerable<Product> = []
                     return products
                 } 
         let listProductsAsync:ListProductsAsync = listProductsFunc 
@@ -46,7 +46,7 @@ module Tests =
         let listProductsFunc = 
             fun page pageCount -> 
                 task{ 
-                    let products:IEnumerable<ProductDto> = []
+                    let products:IEnumerable<Product> = []
                     Exception("Unexpected error") |> raise
                     return products
                 }
@@ -71,8 +71,8 @@ module Tests =
         //let mockFunc = GetByCodeAsync(mockGetProductByCode)
         let funcUnderTest code = ProductEndpoints.GetByCodeAsync(mockGetProductByCode,code)
         let! r = (funcUnderTest 1 |> Async.AwaitTask)
-        let result = r :?> HttpResults.Ok<ProductDto>
-        let expectedResult = Results.Ok<ProductDto>(product) :?> HttpResults.Ok<ProductDto>        
+        let result = r :?> HttpResults.Ok<Product>
+        let expectedResult = Results.Ok<Product>(product) :?> HttpResults.Ok<Product>        
         Assert.Equal(expectedResult.StatusCode,result.StatusCode)
     }
     

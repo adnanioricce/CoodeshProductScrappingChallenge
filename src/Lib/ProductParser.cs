@@ -1,10 +1,10 @@
-﻿namespace ProductScrapper
+﻿namespace ProductScrapper.Lib
 {
     using AngleSharp;
     using AngleSharp.Dom;
     using AngleSharp.Html.Parser;
-
-    public class ProductParser
+    using Models;
+    public sealed class ProductParser
     {
         private readonly HtmlParser _parser = new HtmlParser();
         /// <summary>

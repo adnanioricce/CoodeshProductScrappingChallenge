@@ -1,16 +1,18 @@
-﻿using Lib.Repository;
-using ProductScrapper;
+﻿using ProductScrapper;
+using ProductScrapper.Lib;
+using ProductScrapper.Lib.Models;
+using ProductScrapper.Lib.Repository;
 
 namespace Scrapper
 {
     public sealed class ScrapperWorker : BackgroundService
     {
-        private readonly ProductScrapper.ProductScrapper _scrapper;
+        private readonly ProductScrapperService _scrapper;
         private readonly IProductRepository _productRepository;
         private readonly string _initialUrl = "https://world.openfoodfacts.org/";
         private readonly ILogger<ScrapperWorker> _logger;
         private readonly PeriodicTimer _timer;        
-        public ScrapperWorker(ProductScrapper.ProductScrapper scrapper,
+        public ScrapperWorker(ProductScrapperService scrapper,
             IProductRepository productRepository,
             ILogger<ScrapperWorker> logger)
         {

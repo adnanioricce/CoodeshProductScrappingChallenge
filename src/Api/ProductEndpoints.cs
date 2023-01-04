@@ -1,12 +1,12 @@
-﻿using Lib.Repository;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using ProductScrapper.Lib.Models;
+using ProductScrapper.Lib.Repository;
 
 namespace ProductScrapper
-{
-    public delegate Task<IEnumerable<Product>> ListProductsAsync(int page,int pageCount);
-    public delegate Task<Product> GetByCodeAsync(long code);
+{    
     public class ProductEndpoints : IApiDefinition
     {        
+
         public ProductEndpoints()
         {            
         }
