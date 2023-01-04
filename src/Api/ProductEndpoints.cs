@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ProductScrapper
 {
-    public delegate Task<IEnumerable<ProductDto>> ListProductsAsync(int page,int pageCount);
-    public delegate Task<ProductDto> GetByCodeAsync(long code);
+    public delegate Task<IEnumerable<Product>> ListProductsAsync(int page,int pageCount);
+    public delegate Task<Product> GetByCodeAsync(long code);
     public class ProductEndpoints : IApiDefinition
     {        
         public ProductEndpoints()
@@ -14,7 +14,7 @@ namespace ProductScrapper
         {
             //Configura as dependências
             services.AddSingleton<CreateConnection>(AppConnection.CreateConnection);            
-            services.AddTransient<IProductRepository, SqlProductRepository>();
+            services.AddTransient<IProductRepository, SqlProductRepository>();            
         }
         public void SetupEndpoints(WebApplication app)
         {
@@ -25,41 +25,41 @@ namespace ProductScrapper
             app.MapGet("products",
                 ([FromServices] IProductRepository productRepository,int page,int pageCount) => ListAsync(productRepository.ListAsync,page,pageCount));
         }
-
-        public static async Task<IResult> ListAsync(ListProductsAsync listProductsAsync,int page,int pageCount)
-        {                        
+        private static async Task<IResult> Handle(Func<Task<IResult>> func)
+        {
             try
             {
-                var products = await listProductsAsync(page,pageCount);
-                if (!products.Any())                
-                    return Results.NoContent();                
-                
+                return await func();
+            }
+            catch (Exception)
+            {
+
+                return Results.StatusCode(500);
+            }
+        }
+        public static async Task<IResult> ListAsync(ListProductsAsync listProductsAsync,int page,int pageCount)
+        {
+            return await Handle(async () =>
+            {
+                var products = await listProductsAsync(page, pageCount);
+                if (!products.Any())
+                    return Results.NoContent();
+
                 var result = Results.Ok(products);
                 return result;
-            }
-            catch (Exception ex)
-            {
-                //TODO:Log
-                return Results.StatusCode(500);
-            }            
+            });            
         }
 
         public static async Task<IResult> GetByCodeAsync(GetByCodeAsync getByCodeAsync, long code)
         {
-            try
-            {
+            return await Handle(async () => { 
                 var product = await getByCodeAsync(code);
                 if (product == default)
                     return Results.NoContent();
 
                 var result = Results.Ok(product);
                 return result;
-            }
-            catch(Exception ex)
-            {
-                //TODO: Log
-                return Results.StatusCode(500);
-            }
+            });
         }
     }
 }

@@ -51,8 +51,8 @@ namespace Scrapper
                 {
                     _logger.LogInformation("Scrapping list of products to be scrapped...");
                     var url = _initialUrl + scrapIndex;
-                    var products = await _scrapper.ScrapProductListAsync(client.GetStringAsync, url) ?? Enumerable.Empty<ProductDto>();
-                    var productsFilled = new ProductDto[products.Count()];
+                    var products = await _scrapper.ScrapProductListAsync(client.GetStringAsync, url) ?? Enumerable.Empty<Product>();
+                    var productsFilled = new Product[products.Count()];
                     _logger.LogInformation("Scrapping each product individually");
                     var elements = products.Select((Product, Index) => (Index, Product));
                     foreach (var (Index, Product) in elements)

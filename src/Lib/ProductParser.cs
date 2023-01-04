@@ -11,8 +11,8 @@
         /// Parse a list of products from the page
         /// </summary>
         /// <param name="str">the HTML string with the product data to be scrapped</param>
-        /// <returns>a <see cref="IEnumerable{T}"/> of <see cref="ProductDto"/></returns>
-        public async Task<IEnumerable<ProductDto>> ParseProductsFromPage(string str)
+        /// <returns>a <see cref="IEnumerable{T}"/> of <see cref="Product"/></returns>
+        public async Task<IEnumerable<Product>> ParseProductsFromPage(string str)
         {
             var parsedContent = await _parser.ParseDocumentAsync(str);
             var products = parsedContent.QuerySelectorAll(".search_results li a");
@@ -25,8 +25,8 @@
         /// Parse product descrption page
         /// </summary>
         /// <param name="str">the HTML string with the product data to be scrapped</param>
-        /// <returns>a <see cref="IEnumerable{T}"/> of <see cref="ProductDto"/></returns>
-        public async Task<ProductDto> ParseProductDescriptionPage(string str,ProductDto previousProduct)
+        /// <returns>a <see cref="IEnumerable{T}"/> of <see cref="Product"/></returns>
+        public async Task<Product> ParseProductDescriptionPage(string str,Product previousProduct)
         {
             var parsedContent = await _parser.ParseDocumentAsync(str);
             var productSection = parsedContent.QuerySelector("#product");
@@ -54,11 +54,11 @@
             return product;            
         }
         /// <summary>
-        /// Parse the given <see cref="IElement"/> as a <see cref="ProductDto"/>
+        /// Parse the given <see cref="IElement"/> as a <see cref="Product"/>
         /// </summary>
         /// <param name="p">a <see cref="IElement"/></param>
-        /// <returns>a <see cref="ProductDto"/> with the data from the given <see cref="IElement"/></returns>
-        public static ProductDto ParseProduct(IElement p)
+        /// <returns>a <see cref="Product"/> with the data from the given <see cref="IElement"/></returns>
+        public static Product ParseProduct(IElement p)
         {            
             string url = p.GetAttribute("href") ?? "";
             var urlParts = url.Replace("https://", "").Split("/");
@@ -72,7 +72,7 @@
                 throw;
             }
             string imageUrl = p.QuerySelector("img")?.GetAttribute("src") ?? "";            
-            return new ProductDto
+            return new Product
             {
                 Code = Convert.ToInt64(code)
                 //,ProductName = productName

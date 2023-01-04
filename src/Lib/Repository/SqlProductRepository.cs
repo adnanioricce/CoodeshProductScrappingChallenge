@@ -1,8 +1,6 @@
 ﻿using Dapper;
-using Lib.Events;
 using ProductScrapper;
 using System.Data;
-using System.Runtime.CompilerServices;
 
 namespace Lib.Repository
 {
@@ -15,7 +13,7 @@ namespace Lib.Repository
         {
             _createConnection = createConnection;
         }
-        public async Task BulkCreateAsync(IEnumerable<ProductDto> products)
+        public async Task BulkCreateAsync(IEnumerable<Product> products)
         {            
             foreach (var product in products)
             {
@@ -40,12 +38,12 @@ namespace Lib.Repository
             }            
         }
 
-        public async Task Create(ProductDto product)
+        public async Task Create(Product product)
         {
             await BulkCreateAsync(new[] { product });
         }
 
-        public async Task<ProductDto> GetByCodeAsync(long code)
+        public async Task<Product> GetByCodeAsync(long code)
         {
             return await AppConnection.OnConnection(_createConnection,
                 async (conn) =>
@@ -53,29 +51,29 @@ namespace Lib.Repository
                     using var reader = await conn.ExecuteReaderAsync("SELECT * FROM dbo.[Products] WHERE Code = @Code", new { Code = code });
                     if (reader.Read())
                     {
-                        return ProductDto.Read(reader);
+                        return Product.Read(reader);
                     }
                     return default;
                 });
         }
 
-        public async Task<ProductDto> GetByIdAsync(long id)
+        public async Task<Product> GetByIdAsync(long id)
         {
             return await AppConnection.OnConnection(_createConnection,
-                async (conn) => await conn.QueryFirstAsync<ProductDto>("SELECT * FROM dbo.[Products] WHERE Id = @Id", new { Id = id }));
+                async (conn) => await conn.QueryFirstAsync<Product>("SELECT * FROM dbo.[Products] WHERE Id = @Id", new { Id = id }));
         }
 
-        public async Task<IEnumerable<ProductDto>> ListAsync()
+        public async Task<IEnumerable<Product>> ListAsync()
         {
             try
             {
-                Func<IDbConnection, Task<IEnumerable<ProductDto>>> readRows = async (conn) =>
+                Func<IDbConnection, Task<IEnumerable<Product>>> readRows = async (conn) =>
                 {
                     using var reader = await conn.ExecuteReaderAsync("SELECT * FROM dbo.[Products]");
-                    var products = new List<ProductDto>();
+                    var products = new List<Product>();
                     while (reader.Read())
                     {
-                        products.Add(ProductDto.Read(reader));
+                        products.Add(Product.Read(reader));
                     }
                     return products;
                 };
@@ -84,11 +82,11 @@ namespace Lib.Repository
             }
             catch (Exception ex)
             {
-                return Enumerable.Empty<ProductDto>();
+                return Enumerable.Empty<Product>();
             }
         }
 
-        public async Task<IEnumerable<ProductDto>> ListAsync(int page, int pageCount)
+        public async Task<IEnumerable<Product>> ListAsync(int page, int pageCount)
         {
             try
             {
@@ -97,13 +95,13 @@ namespace Lib.Repository
         ORDER BY Code
         OFFSET {page * pageCount}        
         ROWS FETCH NEXT {pageCount} ROWS ONLY";
-                Func<IDbConnection, Task<IEnumerable<ProductDto>>> readRows = async (conn) =>
+                Func<IDbConnection, Task<IEnumerable<Product>>> readRows = async (conn) =>
                 {
                     using var reader = await conn.ExecuteReaderAsync(query);
-                    var products = new List<ProductDto>();
+                    var products = new List<Product>();
                     while (reader.Read())
                     {
-                        products.Add(ProductDto.Read(reader));
+                        products.Add(Product.Read(reader));
                     }
                     return products;
                 };
@@ -112,10 +110,10 @@ namespace Lib.Repository
             }
             catch (Exception ex)
             {
-                return Enumerable.Empty<ProductDto>();
+                return Enumerable.Empty<Product>();
             }
         }
-        public async Task Update(ProductDto product)
+        public async Task Update(Product product)
         {
             var query = @"
                 UPDATE [Products] 
@@ -133,21 +131,6 @@ namespace Lib.Repository
                    ,ImageUrl = @ImageUrl
                 WHERE Id = @Id";
             await AppConnection.OnConnection(_createConnection, async (conn) => await conn.ExecuteAsync(query, product));
-        }
-        public IEnumerable<ScrapPageEvent> CreateScrapPageEvents(int lastPageNumber)
-        {
-            return Enumerable.Range(1, lastPageNumber)
-                .Select(page => new ScrapPageEvent(page));
-        }
-        public async Task RegisterProductEvents(IEnumerable<ScrapPageEvent> events)
-        {
-            await AppConnection.OnConnection(_createConnection, async (conn) =>
-            {
-                var query = @"
-                INSERT INTO [Products](Code,Barcode,Status,ImportedAt,Url,ProductName,Quantity,Categories,Packaging,Brands,ImageUrl) 
-                VALUES(@Code,@Barcode,@Status,@ImportedAt,@Url,@ProductName,@Quantity,@Categories,@Packaging,@Brands,@ImageUrl)";
-                return await conn.ExecuteAsync(query,events);
-            });
-        }
+        }       
     }
 }

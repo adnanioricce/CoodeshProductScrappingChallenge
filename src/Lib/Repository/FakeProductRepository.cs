@@ -4,8 +4,8 @@ namespace Lib.Repository
 {
     public class FakeProductRepository : IProductRepository
     {
-        private readonly List<ProductDto> products = new List<ProductDto>() {
-            new ProductDto(){
+        private readonly List<Product> products = new List<Product>() {
+            new Product(){
                 Id = 1,
                 Code = 3661112502850,
                 Barcode = "3661112502850(EAN / EAN-13)",
@@ -21,33 +21,33 @@ namespace Lib.Repository
                 ImageUrl = "https://static.openfoodfacts.org/images/products/366/111/250/2850/front_fr.3.400.jpg"
             }
         };
-        public Task<ProductDto> GetByIdAsync(long id)
+        public Task<Product> GetByIdAsync(long id)
         {
-            ProductDto product = products.Where(p => p.Id == id).FirstOrDefault();
+            Product product = products.Where(p => p.Id == id).FirstOrDefault();
             return Task.FromResult(product);
         }
-        public Task<ProductDto> GetByCodeAsync(long code)
+        public Task<Product> GetByCodeAsync(long code)
         {
-            ProductDto product = products.Where(p => p.Code == code).FirstOrDefault();
+            Product product = products.Where(p => p.Code == code).FirstOrDefault();
             return Task.FromResult(product);
         }
-        public Task<IEnumerable<ProductDto>> ListAsync()
+        public Task<IEnumerable<Product>> ListAsync()
         {
             return Task.FromResult(products.AsEnumerable());
         }
-        public Task Create(ProductDto product)
+        public Task Create(Product product)
         {
             products.Add(product);
             return Task.CompletedTask;
         }
 
-        public Task BulkCreateAsync(IEnumerable<ProductDto> products)
+        public Task BulkCreateAsync(IEnumerable<Product> products)
         {
             //TODO:
             return Task.CompletedTask;
         }
 
-        public Task<IEnumerable<ProductDto>> ListAsync(int page, int pageCount)
+        public Task<IEnumerable<Product>> ListAsync(int page, int pageCount)
         {
             return Task.FromResult(products.Skip(page).Take(pageCount));
         }
