@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using System.Data;
 
-namespace ProductScrapper
+namespace Lib.Repository
 {
     public static class AppConnection
     {
@@ -15,7 +15,7 @@ namespace ProductScrapper
             var getConnectionString = () => Environment.GetEnvironmentVariable("DATABASE_URL");
             return CreateConnection(getConnectionString);
         }
-        public static T OnConnection<T>(CreateConnection createConnection,Func<IDbConnection,T> onConn)
+        public static T OnConnection<T>(CreateConnection createConnection, Func<IDbConnection, T> onConn)
         {
             using (var conn = createConnection())
             {

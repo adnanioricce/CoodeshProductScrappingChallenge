@@ -1,8 +1,10 @@
 ﻿using Dapper;
+using Lib.Events;
+using ProductScrapper;
 using System.Data;
 using System.Runtime.CompilerServices;
 
-namespace ProductScrapper
+namespace Lib.Repository
 {
     public delegate IDbConnection CreateConnectionWith(string connectionString);
     public delegate IDbConnection CreateConnection();
@@ -14,29 +16,28 @@ namespace ProductScrapper
             _createConnection = createConnection;
         }
         public async Task BulkCreateAsync(IEnumerable<ProductDto> products)
-        {
-            //var query = @"
-            //    INSERT INTO [Products](Code,Barcode,Status,ImportedAt,Url,ProductName,Quantity,Categories,Packaging,Brands,ImageUrl) 
-            //    VALUES(@Code,@Barcode,@Status,@ImportedAt,@Url,@ProductName,@Quantity,@Categories,@Packaging,@Brands,@ImageUrl)";
+        {            
             foreach (var product in products)
             {
                 var existingProduct = await GetByCodeAsync(product.Code);
-                var updatedProduct = product with
+                var isDefault = existingProduct == default;
+                var isEqual = existingProduct == product;
+                if (!isDefault && !isEqual)
                 {
-                    ImportedAt = DateTimeOffset.UtcNow.ToString()
-                };
-                if (existingProduct == default)
-                {
-                    await Create(updatedProduct);
+                    await Create(product with
+                    {
+                        ImportedAt = DateTimeOffset.UtcNow.ToString()
+                    });
+                    continue;
                 }
-                else
+                if (!isEqual)
                 {
-                    await Update(updatedProduct);
+                    await Update(product with
+                    {
+                        ImportedAt = DateTimeOffset.UtcNow.ToString()
+                    });
                 }
-            }
-            //await AppConnection.OnConnection(_createConnection, async (conn) =>
-            //    await conn.ExecuteAsync(query
-            //    , products.Select(p => p with { ImportedAt = DateTimeOffset.UtcNow.ToString() })));
+            }            
         }
 
         public async Task Create(ProductDto product)
@@ -47,7 +48,8 @@ namespace ProductScrapper
         public async Task<ProductDto> GetByCodeAsync(long code)
         {
             return await AppConnection.OnConnection(_createConnection,
-                async (conn) => {
+                async (conn) =>
+                {
                     using var reader = await conn.ExecuteReaderAsync("SELECT * FROM dbo.[Products] WHERE Code = @Code", new { Code = code });
                     if (reader.Read())
                     {
@@ -67,7 +69,8 @@ namespace ProductScrapper
         {
             try
             {
-                Func<IDbConnection,Task<IEnumerable<ProductDto>>> readRows = async (conn) => {
+                Func<IDbConnection, Task<IEnumerable<ProductDto>>> readRows = async (conn) =>
+                {
                     using var reader = await conn.ExecuteReaderAsync("SELECT * FROM dbo.[Products]");
                     var products = new List<ProductDto>();
                     while (reader.Read())
@@ -76,13 +79,13 @@ namespace ProductScrapper
                     }
                     return products;
                 };
-                var result = await AppConnection.OnConnection(_createConnection,readRows);
+                var result = await AppConnection.OnConnection(_createConnection, readRows);
                 return result;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return Enumerable.Empty<ProductDto>();
-            }            
+            }
         }
 
         public async Task<IEnumerable<ProductDto>> ListAsync(int page, int pageCount)
@@ -94,7 +97,8 @@ namespace ProductScrapper
         ORDER BY Code
         OFFSET {page * pageCount}        
         ROWS FETCH NEXT {pageCount} ROWS ONLY";
-                Func<IDbConnection, Task<IEnumerable<ProductDto>>> readRows = async (conn) => {
+                Func<IDbConnection, Task<IEnumerable<ProductDto>>> readRows = async (conn) =>
+                {
                     using var reader = await conn.ExecuteReaderAsync(query);
                     var products = new List<ProductDto>();
                     while (reader.Read())
@@ -130,24 +134,20 @@ namespace ProductScrapper
                 WHERE Id = @Id";
             await AppConnection.OnConnection(_createConnection, async (conn) => await conn.ExecuteAsync(query, product));
         }
-        public async Task UpdateRemainingFields(ProductDto product)
+        public IEnumerable<ScrapPageEvent> CreateScrapPageEvents(int lastPageNumber)
         {
-            await UpdateRemainingFields(new[] { product });
+            return Enumerable.Range(1, lastPageNumber)
+                .Select(page => new ScrapPageEvent(page));
         }
-        public async Task UpdateRemainingFields(IEnumerable<ProductDto> products)
+        public async Task RegisterProductEvents(IEnumerable<ScrapPageEvent> events)
         {
             await AppConnection.OnConnection(_createConnection, async (conn) =>
-                await conn.ExecuteAsync(@"
-                UPDATE [Products] 
-                SET Barcode = @Barcode
-                   ,Status = @Status
-                   ,ImportedAt = @ImportedAt
-                   ,Quantity = @Quantity
-                   ,Categories = @Categories
-                   ,Packaging = @Packaging
-                   ,Brands = @Brands                 
-                WHERE Id = @Id"
-                , products));
+            {
+                var query = @"
+                INSERT INTO [Products](Code,Barcode,Status,ImportedAt,Url,ProductName,Quantity,Categories,Packaging,Brands,ImageUrl) 
+                VALUES(@Code,@Barcode,@Status,@ImportedAt,@Url,@ProductName,@Quantity,@Categories,@Packaging,@Brands,@ImageUrl)";
+                return await conn.ExecuteAsync(query,events);
+            });
         }
     }
 }

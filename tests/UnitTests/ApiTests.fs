@@ -1,6 +1,7 @@
 ﻿namespace Api
 
 open System.Collections.Generic
+open Lib.Repository
 
 module Tests = 
 

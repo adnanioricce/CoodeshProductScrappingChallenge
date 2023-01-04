@@ -1,4 +1,4 @@
-using ProductScrapper;
+using Lib.Repository;
 using Scrapper;
 
 IHost host = Host.CreateDefaultBuilder(args)

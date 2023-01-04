@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Lib.Repository;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ProductScrapper
 {

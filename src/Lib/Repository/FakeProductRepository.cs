@@ -1,4 +1,6 @@
-﻿namespace ProductScrapper
+﻿using ProductScrapper;
+
+namespace Lib.Repository
 {
     public class FakeProductRepository : IProductRepository
     {
@@ -44,14 +46,10 @@
             //TODO:
             return Task.CompletedTask;
         }
-        public Task UpdateRemainingFields(ProductDto product)
-        {
-            return Task.CompletedTask;
-        }
 
         public Task<IEnumerable<ProductDto>> ListAsync(int page, int pageCount)
         {
-            return Task.FromResult(Enumerable.Empty<ProductDto>());
+            return Task.FromResult(products.Skip(page).Take(pageCount));
         }
     }
 }

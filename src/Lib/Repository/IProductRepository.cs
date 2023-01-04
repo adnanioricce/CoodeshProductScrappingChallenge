@@ -1,4 +1,6 @@
-﻿namespace ProductScrapper
+﻿using ProductScrapper;
+
+namespace Lib.Repository
 {
     //TODO: If needed, create a generic class. This didn't seemed necessary to me.
     public interface IProductRepository
@@ -22,8 +24,7 @@
         /// </summary>
         /// <returns>a list of products as a <see cref="IEnumerable{T}"/> of <see cref="ProductDto"/></returns>
         Task<IEnumerable<ProductDto>> ListAsync();
-        Task<IEnumerable<ProductDto>> ListAsync(int page,int pageCount);
+        Task<IEnumerable<ProductDto>> ListAsync(int page, int pageCount);
         Task BulkCreateAsync(IEnumerable<ProductDto> products);
-        Task UpdateRemainingFields(ProductDto product);
     }
 }

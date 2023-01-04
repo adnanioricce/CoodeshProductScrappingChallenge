@@ -15,7 +15,7 @@
         public async Task<IEnumerable<ProductDto>> ParseProductsFromPage(string str)
         {
             var parsedContent = await _parser.ParseDocumentAsync(str);
-            var products = parsedContent.QuerySelectorAll("#search_results li a");
+            var products = parsedContent.QuerySelectorAll(".search_results li a");
             //var product = products[0];
             //var productStr = product.Html();
             //File.WriteAllText("product.html",productStr);
@@ -53,6 +53,11 @@
             };
             return product;            
         }
+        /// <summary>
+        /// Parse the given <see cref="IElement"/> as a <see cref="ProductDto"/>
+        /// </summary>
+        /// <param name="p">a <see cref="IElement"/></param>
+        /// <returns>a <see cref="ProductDto"/> with the data from the given <see cref="IElement"/></returns>
         public static ProductDto ParseProduct(IElement p)
         {            
             string url = p.GetAttribute("href") ?? "";
@@ -66,10 +71,7 @@
             {
                 throw;
             }
-            string imageUrl = p.QuerySelector("img")?.GetAttribute("src") ?? "";
-            string productDesc = p.GetAttribute("title") ?? "";
-            //string[] productNameParts = productDesc.Split("-");
-            //var productName = productNameParts[0].Trim();
+            string imageUrl = p.QuerySelector("img")?.GetAttribute("src") ?? "";            
             return new ProductDto
             {
                 Code = Convert.ToInt64(code)
@@ -80,6 +82,20 @@
                 ,ImageUrl = imageUrl
                 ,Status = ProductStatus.Draft
             };            
+        }
+        /// <summary>
+        /// Get the last index of the pagination of products of the page.
+        /// </summary>
+        /// <param name="content">the HTML content with the paginated product grid</param>
+        /// <returns>the last page of the pagination grid</returns>
+        public async Task<int> ParseLastProductPage(string content)
+        {
+            var doc = await _parser.ParseDocumentAsync(content);
+            var pages = doc.QuerySelectorAll("#pages li")
+                ?.Select(p => int.TryParse(p.TextContent ?? "", out var r) ? r : 0)
+                ?.ToArray();
+            pages = pages ?? Enumerable.Empty<int>().ToArray();
+            return pages.Any() ? pages.Max() : -1;
         }
     }
 }

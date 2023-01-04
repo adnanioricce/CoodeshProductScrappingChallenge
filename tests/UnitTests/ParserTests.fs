@@ -19,12 +19,13 @@ module Tests =
                 Assert.Null(product.Brands)
                 Assert.Null(product.Categories)
                 Assert.Null(product.Quantity)
-                Assert.Null(product.Packaging)
+                Assert.Null(product.Packaging)   
+                Assert.Null(product.ProductName)
                 Assert.Equal(0L,product.Id)            
                 Assert.Equal(ProductStatus.Draft,product.Status)
-                Assert.NotEmpty(product.Url)
-                Assert.NotEmpty(product.ProductName)
+                Assert.NotEmpty(product.Url)                
                 Assert.NotEmpty(product.ImageUrl)
+                
         let inspectors:Action<ProductDto> array = products |> Seq.map (fun p -> (Action<ProductDto> inspector)) |> Seq.toArray            
         Assert.NotEmpty(products)
         Assert.Collection(products,inspectors)
