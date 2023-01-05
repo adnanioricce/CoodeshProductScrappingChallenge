@@ -1,5 +1,4 @@
-﻿using Lib.Repository;
-using ProductScrapper;
+﻿using ProductScrapper;
 using ProductScrapper.Lib;
 using ProductScrapper.Lib.Models;
 using ProductScrapper.Lib.Repository;
@@ -9,66 +8,40 @@ namespace Scrapper
     public sealed class ScrapperWorker : BackgroundService
     {
         private readonly ProductScrapperService _scrapper;
-        private readonly IProductRepository _productRepository;
-        private readonly ProductPagesRepository _productPagesRepository;
+        private readonly IProductRepository _productRepository;        
         private readonly string _initialUrl = "https://world.openfoodfacts.org/";
         private readonly ILogger<ScrapperWorker> _logger;
         private readonly PeriodicTimer _timer;
         private readonly HttpClient _client;
         public ScrapperWorker(ProductScrapperService scrapper,
-            IProductRepository productRepository,
-            ProductPagesRepository productPagesRepository,
+            IProductRepository productRepository,            
             ILogger<ScrapperWorker> logger)
         {
             _scrapper = scrapper;
             _productRepository = productRepository;            
             _logger = logger;
             _timer = new PeriodicTimer(TimeSpan.FromHours(8.0));
-            _client = new HttpClient();
-            _productPagesRepository = productPagesRepository;
+            _client = new HttpClient();            
         }       
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await ScrapToBeImported();
+            await Scrap();
             while (await _timer.WaitForNextTickAsync(stoppingToken)
                     && !stoppingToken.IsCancellationRequested)
             {
-                await ScrapToBeImported();
+                await Scrap();
             }
-        }
-        private async Task ScrapToBeImported()
-        {            
-            var lastPageNumber = await _scrapper.ScrapLastProductPage(_client.GetStringAsync, _initialUrl);
-            _logger.LogInformation("Scrapping list of products to be scrapped...");
-            var tasks = Enumerable.Range(1, lastPageNumber).Select(index =>
-            {
-                Func<Task> func = async () =>
-                {
-                    var url = _initialUrl + index;                    
-                    _logger.LogInformation($"[{url}] Scrapping...");
-                    var products = await _scrapper.ScrapProductListAsync(_client.GetStringAsync, url) ?? Enumerable.Empty<Product>();
-                    //await _productRepository.BulkCreateAsync(products);                    
-                    _logger.LogInformation($"[{url}] Inserting product drafts...");
-                    await _productPagesRepository.BulkCreateAsync(products);
-                    _logger.LogInformation($"[{url}] Inserted");
-                };
-                return func;
-            });
-            foreach (var task in tasks)
-            {
-                await task();
-            }
-        }
+        }        
         private async Task Scrap()
         {
-            int scrapIndex = 0;                        
+            int scrapIndex = 1;                        
             var lastPageNumber = await _scrapper.ScrapLastProductPage(_client.GetStringAsync, _initialUrl);
             while(scrapIndex < lastPageNumber)
             {
                 try
                 {
                     _logger.LogInformation("Scrapping list of products to be scrapped...");
-                    var url = scrapIndex == 0 ? _initialUrl : _initialUrl + scrapIndex;
+                    var url = _initialUrl + scrapIndex;
                     var products = await _scrapper.ScrapProductListAsync(_client.GetStringAsync, url) ?? Enumerable.Empty<Product>();                    
                     _logger.LogInformation("Scrapping each product individually");
                     var elements = products.Select((Product, Index) => (Index, Product));                    
@@ -99,6 +72,13 @@ namespace Scrapper
 
         public override Task StopAsync(CancellationToken cancellationToken)
         {
+            if(_timer != null)
+            {                
+                _timer.Dispose();                
+            }
+            if (_client != null) {                 
+                _client.Dispose();
+            }
             return base.StopAsync(cancellationToken);
         }
     }
