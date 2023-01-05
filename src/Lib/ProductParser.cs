@@ -15,10 +15,10 @@
         public async Task<IEnumerable<Product>> ParseProductsFromPage(string str)
         {
             var parsedContent = await _parser.ParseDocumentAsync(str);
-            var products = parsedContent.QuerySelectorAll(".search_results li a");
+            
+            var products = parsedContent.QuerySelectorAll("#search_results li a");
             //var product = products[0];
-            //var productStr = product.Html();
-            //File.WriteAllText("product.html",productStr);
+            //var productStr = product.Html();            
             return products.Select(p => ParseProduct(p));
         }
         /// <summary>
@@ -30,26 +30,26 @@
         {
             var parsedContent = await _parser.ParseDocumentAsync(str);
             var productSection = parsedContent.QuerySelector("#product");
-            var barcode = productSection?.QuerySelector("#barcode_paragraph")?.TextContent?.Trim();
+            var barcode = productSection?.QuerySelector("#barcode_paragraph")?.TextContent?.Replace("Barcode: ", "")?.Trim();
             var code = productSection?.QuerySelector("#barcode")?.TextContent;
-            var commonName = productSection?.QuerySelector("#field_generic_name")?.TextContent?.Trim();
-            var packaging = 
-                productSection?.QuerySelectorAll("#field_packaging_value a.tag.user_defined")?.Select(p => p.TextContent)?.ToArray()
-                ?? Enumerable.Empty<string>().ToArray();
+            var productName = productSection?.QuerySelector("h2[itemprop='name']")?.TextContent?.Trim();
+            var packaging =
+                //productSection?.QuerySelectorAll("#field_packaging_value a.tag.user_defined")?.Select(p => p.TextContent)?.ToArray()
+                productSection?.QuerySelector("#field_packaging_value")?.TextContent ?? "";           
             var brands =
-                productSection?.QuerySelector("#field_brands")?.TextContent?.Trim();
-            var categories = productSection?.QuerySelector("#field_categories")?.TextContent?.Trim();
-            var quantity = productSection?.QuerySelector("#field_quantity_value")?.TextContent?.Trim();
+                productSection?.QuerySelector("#field_brands_value")?.TextContent?.Trim();
+            var categories = productSection?.QuerySelector("#field_categories")?.TextContent?.Replace("Categories: ", "").Trim();
+            var quantity = productSection?.QuerySelector("#field_quantity_value")?.TextContent?.Replace("Brands: ", "").Trim();
             var product = previousProduct with
             {
                 Barcode = barcode ?? ""
                 ,Brands = brands ?? ""
                 ,Categories = categories ?? ""
                 ,Quantity = quantity ?? ""
-                ,Packaging = string.Join(",",packaging)                
+                ,Packaging = packaging
                 ,Code = Convert.ToInt64(code)
                 ,Status = ProductStatus.Imported   
-                ,ProductName = commonName ?? ""                
+                ,ProductName = productName ?? ""                
             };
             return product;            
         }

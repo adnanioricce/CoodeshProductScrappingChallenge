@@ -12,7 +12,7 @@ services:
       - ASPNETCORE_URLS=http://+:80
       - DATABASE_URL=Server=db,1433;Database=ProductScrapper;User Id=SA;Password=!P4ssword;TrustServerCertificate=True
     ports:
-      - "80"
+      - "5073:80"
       #- "443"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro

@@ -21,7 +21,11 @@ namespace ProductScrapper.Lib.Repository
                 var existingProduct = await GetByCodeAsync(product.Code);
                 var isDefault = existingProduct == default;
                 var isEqual = existingProduct == product;
-                if (!isDefault && !isEqual)
+                if (isDefault && isEqual)
+                {
+                    continue;
+                }
+                if (isDefault && !isEqual)
                 {
                     await Create(product with
                     {
@@ -37,11 +41,14 @@ namespace ProductScrapper.Lib.Repository
                     });
                 }
             }            
-        }
-
+        }        
         public async Task Create(Product product)
         {
-            await BulkCreateAsync(new[] { product });
+            await AppConnection.OnConnection(_createConnection, async (conn) =>
+                await conn.ExecuteAsync(@"
+                INSERT INTO [Products](Code,Barcode,Status,ImportedAt,Url,ProductName,Quantity,Categories,Packaging,Brands,ImageUrl) 
+                VALUES(@Code,@Barcode,@Status,@ImportedAt,@Url,@ProductName,@Quantity,@Categories,@Packaging,@Brands,@ImageUrl)"
+                , product));
         }
 
         public async Task<Product> GetByCodeAsync(long code)

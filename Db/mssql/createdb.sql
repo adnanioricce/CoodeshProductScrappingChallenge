@@ -3,6 +3,8 @@ GO
 USE ProductScrapper;
 
 CREATE TABLE [dbo].[Products](
+  --Some products can have the same Code/Barcode
+  --Example: https://world.openfoodfacts.org//product/20005733/walnusse-alesto
   Id INT IDENTITY(1,1) NOT NULL
   ,Code         BIGINT NOT NULL
   ,Barcode      VARCHAR(MAX) NOT NULL
@@ -31,3 +33,10 @@ VALUES (3661112502850
   
   ,'https://static.openfoodfacts.org/images/products/366/111/250/2850/front_fr.3.400.jpg');
 GO
+
+CREATE TABLE [dbo].[ProductDrafts](
+    Id INT IDENTITY(1,1) NOT NULL
+    ,Url VARCHAR(MAX) NOT NULL
+    ,Status INT NOT NULL
+    ,ScrappedAt VARCHAR(MAX)
+)

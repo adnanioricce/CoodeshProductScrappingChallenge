@@ -19,7 +19,10 @@
         {
             var content = await getStringAsync(url);
             var productFilled = await _parser.ParseProductDescriptionPage(content, productDto);
-            return productFilled;
+            return productFilled with
+            {
+                Url = url
+            };
         }
         public async Task<int> ScrapLastProductPage(Func<string?, Task<string>> getStringAsync, string url)
         {
