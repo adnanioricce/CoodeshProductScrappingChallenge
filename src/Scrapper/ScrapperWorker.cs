@@ -20,7 +20,7 @@ namespace Scrapper
             _scrapper = scrapper;
             _productRepository = productRepository;            
             _logger = logger;
-            _timer = new PeriodicTimer(TimeSpan.FromHours(8.0));
+            _timer = new PeriodicTimer(TimeSpan.FromHours(24.0));
             _client = new HttpClient();            
         }       
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -53,7 +53,7 @@ namespace Scrapper
                             _logger.LogInformation($"[Scrapping {url}] Product: {Product.ToString()}");
                             var scrappedProduct = await _scrapper.ScrapProductDescription(_client.GetStringAsync, _initialUrl + Product.Url, Product);
                             _logger.LogInformation($"[Scrapping {url}] [Product Code:{Product.Code}] Saving product...");
-                            await _productRepository.Create(scrappedProduct);
+                            await _productRepository.CreateOrUpdate(scrappedProduct);
                             _logger.LogInformation($"[Scrapping {url}] [Product Code:{Product.Code}] product Saved!");                            
                         }
                         catch (Exception ex)

@@ -15,6 +15,12 @@ namespace ProductScrapper.Lib.Repository
         /// <returns>A Task with it's state</returns>
         Task Create(Product product);
         /// <summary>
+        /// Inserts given <paramref name="product"/> on database or updates it, if not changed
+        /// </summary>
+        /// <param name="product">the product to be inserted</param>
+        /// <returns>A Task with it's state</returns>
+        Task CreateOrUpdate(Product product);
+        /// <summary>
         /// Get a product by it's Id. this is not the Code of the product.
         /// </summary>
         /// <param name="id"></param>

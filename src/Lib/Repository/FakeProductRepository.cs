@@ -52,5 +52,10 @@ namespace ProductScrapper.Lib.Repository
         {
             return Task.FromResult(products.Skip(page).Take(pageCount));
         }
+
+        public Task CreateOrUpdate(Product product)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

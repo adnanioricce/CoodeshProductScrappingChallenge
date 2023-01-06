@@ -18,37 +18,42 @@ namespace ProductScrapper.Lib.Repository
         {            
             foreach (var product in products)
             {
-                var existingProduct = await GetByCodeAsync(product.Code);
-                var isDefault = existingProduct == default;
-                var isEqual = existingProduct == product;
-                if (isDefault && isEqual)
-                {
-                    continue;
-                }
-                if (isDefault && !isEqual)
-                {
-                    await Create(product with
-                    {
-                        ImportedAt = DateTimeOffset.UtcNow.ToString()
-                    });
-                    continue;
-                }
-                if (!isEqual)
-                {
-                    await Update(product with
-                    {
-                        ImportedAt = DateTimeOffset.UtcNow.ToString()
-                    });
-                }
+                await CreateOrUpdate(product);
             }            
-        }        
+        } 
+        public async Task CreateOrUpdate(Product product)
+        {
+            var existingProduct = await GetByCodeAsync(product.Code);
+            var isDefault = existingProduct == default;
+            var isEqual = existingProduct == product;
+            if (isDefault && isEqual)
+            {
+                return;
+            }
+            if (isDefault)
+            {
+                await Create(product);
+                return;
+            }
+            if (!isEqual && !isDefault)
+            {
+                await Update(product);
+            }
+        }
         public async Task Create(Product product)
         {
+            if(product == default)
+            {
+                return;
+            }
             await AppConnection.OnConnection(_createConnection, async (conn) =>
                 await conn.ExecuteAsync(@"
                 INSERT INTO [Products](Code,Barcode,Status,ImportedAt,Url,ProductName,Quantity,Categories,Packaging,Brands,ImageUrl) 
                 VALUES(@Code,@Barcode,@Status,@ImportedAt,@Url,@ProductName,@Quantity,@Categories,@Packaging,@Brands,@ImageUrl)"
-                , product));
+                , product with
+                {
+                    ImportedAt = DateTimeOffset.UtcNow.ToString()
+                }));
         }
 
         public async Task<Product> GetByCodeAsync(long code)
@@ -123,6 +128,10 @@ namespace ProductScrapper.Lib.Repository
         }
         public async Task Update(Product product)
         {
+            if(product == default)
+            {
+                return;
+            }
             var query = @"
                 UPDATE [Products] 
                 SET
@@ -138,7 +147,10 @@ namespace ProductScrapper.Lib.Repository
                    ,Brands = @Brands       
                    ,ImageUrl = @ImageUrl
                 WHERE Id = @Id";
-            await AppConnection.OnConnection(_createConnection, async (conn) => await conn.ExecuteAsync(query, product));
+            await AppConnection.OnConnection(_createConnection, async (conn) => await conn.ExecuteAsync(query, product with
+            {
+                ImportedAt = DateTimeOffset.UtcNow.ToString()
+            }));
         }       
     }
 }
